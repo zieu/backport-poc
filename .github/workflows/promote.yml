@@ -35,4 +35,4 @@ jobs:
             ---
             ${pull_description}
           merge_commits: skip
-          add_labels: needs-qa,promoted-from-develop
+          add_labels: promoted-from-develop
