@@ -1,0 +1,23 @@
+name: Promote to Main via Backport
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    if: >
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/promote')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backport to main
+        uses: korthout/backport-action@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request: ${{ github.event.issue.number }}
+          target_branches: main
