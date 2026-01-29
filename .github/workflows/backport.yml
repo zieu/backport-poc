@@ -21,3 +21,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pull_request: ${{ github.event.issue.number }}
           target_branches: main
+          cherry_picking: auto
+          branch_name: promote-pr-${source_pr_number}-to-main
+          pull_title: '[Promote] #{pull_number} → main'
+          pull_description: |
+            Automated forward-port to main.
+            Triggered by /promote command.
