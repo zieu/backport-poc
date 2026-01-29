@@ -1,45 +1,39 @@
+name: Promote to Main
 on:
-  pull_request_target:
-    types: [closed]
-
+  issue_comment:
+    types: [created]
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   promote:
-    if: >
-      github.event.pull_request.merged &&
-      github.event.pull_request.base.ref == 'develop' &&
-      contains(github.event.pull_request.labels.*.name, 'promote-to-main')
     runs-on: ubuntu-latest
+    if: >
+      github.event.issue.pull_request &&
+      github.event.comment.body &&
+      contains(github.event.comment.body, '/promote')
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-  steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Promote PR to main
+        uses: korthout/backport-action@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          source_pr_number: ${{ github.event.issue.number }}
+          target_branches: main
+          cherry_picking: auto
+          branch_name: promote-${pull_number}-to-main
+          pull_title: '[Promote] ${pull_title}'
+          pull_description: |
+            🚀 Automated promotion to `main` for QA testing
 
-    - name: Promote PR to main
-      uses: korthout/backport-action@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        source_pr_number: ${{ github.event.issue.number }}
-        target_branches: main
-        cherry_picking: auto
-        branch_name: promote-${pull_number}-to-main
-        pull_title: '[Promote] ${pull_title}'
-        pull_description: |
-          🚀 Automated promotion to `main` for QA testing
+            **Original PR**: #${pull_number}
+            **Triggered by**: /promote command
 
-          **Original PR**: #${pull_number}
-
-          ---
-          ${pull_description}
-        merge_commits: skip
-        add_labels: promoted-from-develop
+            ---
+            ${pull_description}
+          merge_commits: skip
+          add_labels: needs-qa,promoted-from-develop
