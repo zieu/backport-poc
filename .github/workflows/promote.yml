@@ -15,9 +15,14 @@ jobs:
       contains(github.event.comment.body, '/promote')
     runs-on: ubuntu-latest
     steps:
-      - name: Backport to main
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Promote PR to main
         uses: korthout/backport-action@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          pull_request: ${{ github.event.issue.number }}
+          source_pr_number: ${{ github.event.issue.number }}
           target_branches: main
