@@ -1,4 +1,4 @@
 testing backporting
-add feature a
-add feature b
+fix feature b
+fix feature a
 add feature c
