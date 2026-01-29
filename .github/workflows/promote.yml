@@ -1,8 +1,6 @@
-name: Promote to Main via Backport
-
 on:
-  issue_comment:
-    types: [created]
+  pull_request_target:
+    types: [closed]
 
 permissions:
   contents: write
@@ -11,8 +9,9 @@ permissions:
 jobs:
   promote:
     if: >
-      github.event.issue.pull_request &&
-      contains(github.event.comment.body, '/promote')
+      github.event.pull_request.merged &&
+      github.event.pull_request.base.ref == 'develop' &&
+      contains(github.event.pull_request.labels.*.name, 'promote-to-main')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -20,12 +19,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Promote PR to main
-        uses: korthout/backport-action@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          target_branches: main
-          cherry_picking: auto
-          pull_description: |
-            Automated forward-port to main.
-            Triggered by /promote command.
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Promote PR to main
+      uses: korthout/backport-action@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        source_pr_number: ${{ github.event.issue.number }}
+        target_branches: main
+        cherry_picking: auto
+        branch_name: promote-${pull_number}-to-main
+        pull_title: '[Promote] ${pull_title}'
+        pull_description: |
+          🚀 Automated promotion to `main` for QA testing
+
+          **Original PR**: #${pull_number}
+
+          ---
+          ${pull_description}
+        merge_commits: skip
+        add_labels: promoted-from-develop
